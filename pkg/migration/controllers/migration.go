@@ -231,7 +231,7 @@ func (m *MigrationController) handle(ctx context.Context, migration *stork_api.M
 			migration.Status.Status = stork_api.MigrationStatusFailed
 			migration.Status.Stage = stork_api.MigrationStageFinal
 			migration.Status.FinishTimestamp = metav1.Now()
-			err = fmt.Errorf("Migrated applications are active on remote cluster")
+			err = fmt.Errorf("migrated applications are active on remote cluster")
 			log.MigrationLog(migration).Errorf(err.Error())
 			m.recorder.Event(migration,
 				v1.EventTypeWarning,

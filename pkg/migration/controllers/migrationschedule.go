@@ -108,12 +108,9 @@ func (m *MigrationScheduleController) handle(ctx context.Context, migrationSched
 
 		return nil
 	}
-	// TODO: verify if appActivated flags need to be set as default
 	migrationSchedule.Spec = setScheduleDefaults(migrationSchedule.Spec)
 	if migrationSchedule.GetAnnotations() != nil {
-		// TODO: parse bool to true for annotations val
 		if _, ok := migrationSchedule.GetAnnotations()[StorkMigrationAnnotation]; ok {
-			// for fallback scenario we need to remove annot?
 			// check status of all migrated app in cluster
 			logrus.Infof("Migration schedule is on dr cluster")
 			isActivated, err := getMigratedAppStatus(migrationSchedule)
@@ -490,11 +487,7 @@ func (m *MigrationScheduleController) createCRD() error {
 	return apiextensions.Instance().ValidateCRD(resource, validateCRDTimeout, validateCRDInterval)
 }
 
-// write in threads
 func getMigratedAppStatus(migrationSchedule *stork_api.MigrationSchedule) (bool, error) {
-	// check cr status
-	// check deploy status
-	//migrTime := migrationSchedule.GetAnnotations()[StorkMigrationTime]
 	for _, ns := range migrationSchedule.Spec.Template.Spec.Namespaces {
 		deployList, err := apps.Instance().ListDeployments(ns, meta.ListOptions{LabelSelector: fmt.Sprintf("%v=%v", StorkMigrationAnnotation, "true")})
 		if err != nil {
@@ -527,15 +520,10 @@ func getMigratedAppStatus(migrationSchedule *stork_api.MigrationSchedule) (bool,
 			}
 		}
 	}
-	// check rs status
 	return false, nil
 }
 
-// write in threads
 func deactivateApps(migrationSchedule *stork_api.MigrationSchedule) (bool, error) {
-	// check cr status
-	// check deploy status
-	//migrTime := migrationSchedule.GetAnnotations()[StorkMigrationTime]
 	for _, ns := range migrationSchedule.Spec.Template.Spec.Namespaces {
 		deployList, err := apps.Instance().ListDeployments(ns, meta.ListOptions{})
 		if err != nil {
@@ -574,13 +562,12 @@ func deactivateApps(migrationSchedule *stork_api.MigrationSchedule) (bool, error
 			} else {
 				annot = make(map[string]string)
 			}
-			logrus.Debugf("scaling down sts %v/%v", sts.Name)
+			logrus.Debugf("scaling down sts %v/%v", sts.Namespace, sts.Name)
 			replicas := *sts.Spec.Replicas
 			annot[appsReplicas] = fmt.Sprintf("%v", replicas)
 			sts.SetAnnotations(annot)
 			replicas = 0
 		}
 	}
-	// check rs status
 	return false, nil
 }
